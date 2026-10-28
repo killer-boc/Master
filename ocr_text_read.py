@@ -203,8 +203,10 @@ def read_text(detector, recognizer, img):
         recognizer.config_preprocess(input_image_size=[crop.shape[2], crop.shape[1]],
                                      input_np=crop)
         item["text"] = recognizer.run(crop)
-        # Free the crop and the intermediate tensors of this box right away.
+        # Free the crop of this box right away.
         item["crop"] = None
+    # One collect per frame: a full gc per box is very slow on the K230.
+    if results:
         gc.collect()
     return results
 
@@ -230,7 +232,6 @@ def draw_text_results(osd_img, results, rgb888p_size, display_size,
                                          color=text_color, font=font_path)
         else:
             osd_img.draw_string_advanced(x, y, font_size, text, color=text_color)
-
 
 
 def results_to_text(results):
